@@ -5,6 +5,7 @@ using Sfs2X;
 using Sfs2X.Core;
 using Sfs2X.Requests;
 using Sfs2X.Entities;
+using Sfs2X.Entities.Data;
 
 public class SFS2X_Connect : MonoBehaviour {
 
@@ -33,6 +34,7 @@ public class SFS2X_Connect : MonoBehaviour {
 		sfs.AddEventListener (SFSEvent.ROOM_JOIN, OnJoinRoom);
 		sfs.AddEventListener(SFSEvent.ROOM_JOIN_ERROR, OnJoinRoomError);
 		sfs.AddEventListener (SFSEvent.PUBLIC_MESSAGE, OnPublicMessage);
+		sfs.AddEventListener (SFSEvent.EXTENSION_RESPONSE, OnExtensionResponse);
 
 		if (UseConfigFile) {
 			sfs.LoadConfig (Application.dataPath + "/" + ConfigFile);
@@ -54,12 +56,29 @@ public class SFS2X_Connect : MonoBehaviour {
 
 	void OnLogin(BaseEvent e) {
 		Debug.Log ("Logged In: " + e.Params ["user"]);
-		sfs.Send (new JoinRoomRequest (RoomName));
+		//sfs.Send (new JoinRoomRequest (RoomName));
 
+		//Send a request to the server extension
+		ISFSObject objOut = new SFSObject ();
+		objOut.PutInt ("NumA", 2);
+		objOut.PutInt ("NumB", 5);
+
+		sfs.Send (new ExtensionRequest ("SumNumbers", objOut));
+
+
+	}
+	void OnExtensionResponse(BaseEvent e){
+		string cmd = (string)e.Params ["cmd"];
+		ISFSObject objIn = (SFSObject)e.Params ["params"];
+
+		if (cmd == "SumNumbers") {
+			Debug.Log ("Sum: " + objIn.GetInt ("NumC"));
+		}
 	}
 
 	void OnJoinRoom(BaseEvent e) {
 		Debug.Log ("Joined Room: " + e.Params ["room"]);
+
 
 	}
 	void OnJoinRoomError(BaseEvent e) {
